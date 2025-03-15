@@ -1,5 +1,5 @@
 //! API of TensorFlow Lite [`Interpreter`] that performs inference.
-use std::ffi::{c_void, CString};
+use std::ffi::c_void;
 use std::os::raw::c_int;
 
 use crate::bindings::*;
