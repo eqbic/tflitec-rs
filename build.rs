@@ -428,6 +428,7 @@ fn install_prebuilt(prebuilt_tflitec_path: &str, tf_src_path: &Path, lib_output_
             tf_src_path,
             &[
                 "tensorflow/lite/delegates/xnnpack/xnnpack_delegate.h",
+                "tensorflow/lite/delegates/external/external_delegate.h",
                 "tensorflow/lite/c/common.h",
             ],
         );
