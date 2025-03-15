@@ -512,4 +512,12 @@ mod tests {
         let output_vector = output_tensor.data::<f32>().to_vec();
         assert_eq!(expected, output_vector);
     }
+
+    // #[test]
+    // fn test_interpreter_invoke_edge_tpu() {
+    //     use crate::interpreter::Options;
+    //     let options = Some(Options::new("/usr/lib/x86_64-linux-gnu/libedgetpu.so.1.0"));
+    //     let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
+    //     let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter!");
+    // }
 }
