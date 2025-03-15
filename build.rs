@@ -365,6 +365,12 @@ fn generate_bindings(tf_src_path: PathBuf) {
             .to_str()
             .unwrap(),
     );
+    builder = builder.header(
+        tf_src_path
+            .join("tensorflow/lite/delegates/external/external_delegate.h")
+            .to_str()
+            .unwrap(),
+    );
     if cfg!(feature = "xnnpack") {
         builder = builder.header(
             tf_src_path
