@@ -1,5 +1,5 @@
 //! API of TensorFlow Lite [`Interpreter`] that performs inference.
-use std::ffi::c_void;
+use std::ffi::{c_void, CString};
 use std::os::raw::c_int;
 
 use crate::bindings::*;
@@ -50,6 +50,13 @@ impl Default for Options {
             is_xnnpack_enabled: false,
         }
     }
+    // unsafe fn configure_external_delegate(external_delegate_path: &str) -> *mut TfLiteDelegate {
+    //     let c_delegate_path = CString::new(external_delegate_path).unwrap();
+    //     let external_delegate_options =
+    //         TfLiteExternalDelegateOptionsDefault(c_delegate_path.as_ptr());
+    //     let external_delegate_ptr = TfLiteExternalDelegateCreate(&external_delegate_options);
+    //     external_delegate_ptr
+    // }
 }
 
 /// A TensorFlow Lite interpreter that performs inference from a given model.
