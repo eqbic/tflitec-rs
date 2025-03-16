@@ -1,5 +1,5 @@
 //! API of TensorFlow Lite [`Interpreter`] that performs inference.
-use std::ffi::c_void;
+use std::ffi::{c_void, CString};
 use std::os::raw::c_int;
 
 use crate::bindings::*;
@@ -40,6 +40,8 @@ pub struct Options {
     #[cfg(feature = "xnnpack")]
     #[cfg_attr(docsrs, doc(cfg(feature = "xnnpack")))]
     pub is_xnnpack_enabled: bool,
+
+    pub delegate_ptr: *mut TfLiteDelegate,
 }
 
 impl Default for Options {
@@ -47,16 +49,38 @@ impl Default for Options {
         Self {
             thread_count: -1,
             #[cfg(feature = "xnnpack")]
-            is_xnnpack_enabled: false,
+            is_xnnpack_enabled: true,
+            delegate_ptr: unsafe { Options::configure_xnnpack(-1) },
         }
     }
-    // unsafe fn configure_external_delegate(external_delegate_path: &str) -> *mut TfLiteDelegate {
-    //     let c_delegate_path = CString::new(external_delegate_path).unwrap();
-    //     let external_delegate_options =
-    //         TfLiteExternalDelegateOptionsDefault(c_delegate_path.as_ptr());
-    //     let external_delegate_ptr = TfLiteExternalDelegateCreate(&external_delegate_options);
-    //     external_delegate_ptr
-    // }
+}
+
+impl Options {
+    pub fn new(external_delegate_path: &str) -> Self {
+        Self {
+            thread_count: 1,
+            is_xnnpack_enabled: false,
+            delegate_ptr: unsafe { Options::configure_external_delegate(external_delegate_path) },
+        }
+    }
+
+    unsafe fn configure_xnnpack(thread_count: i32) -> *mut TfLiteDelegate {
+        let mut xnnpack_options = TfLiteXNNPackDelegateOptionsDefault();
+        if thread_count > 0 {
+            xnnpack_options.num_threads = thread_count;
+        }
+
+        let xnnpack_delegate_ptr = TfLiteXNNPackDelegateCreate(&xnnpack_options);
+        xnnpack_delegate_ptr
+    }
+
+    unsafe fn configure_external_delegate(external_delegate_path: &str) -> *mut TfLiteDelegate {
+        let c_delegate_path = CString::new(external_delegate_path).unwrap();
+        let external_delegate_options =
+            TfLiteExternalDelegateOptionsDefault(c_delegate_path.as_ptr());
+        let external_delegate_ptr = TfLiteExternalDelegateCreate(&external_delegate_options);
+        external_delegate_ptr
+    }
 }
 
 /// A TensorFlow Lite interpreter that performs inference from a given model.
