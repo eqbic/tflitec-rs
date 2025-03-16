@@ -22,6 +22,7 @@ tflite_cc_shared_object(
     per_os_targets = True,
     deps = [
         ":c_api_with_xnn_pack",
+        ":c_api_with_external_delegate",
         "//tensorflow/lite/c:c_api_experimental",
         "//tensorflow/lite/c:exported_symbols.lds",
         "//tensorflow/lite/c:version_script.lds",
@@ -36,6 +37,18 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:c_api",
         "//tensorflow/lite/delegates/xnnpack:xnnpack_delegate"
+    ],
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "c_api_with_external_delegate",
+    hdrs = ["//tensorflow/lite/c:c_api.h",
+            "//tensorflow/lite/delegates/external:external_delegate.h"],
+    copts = tflite_copts(),
+    deps = [
+        "//tensorflow/lite/c:c_api",
+        "//tensorflow/lite/delegates/external:external_delegate"
     ],
     alwayslink = 1,
 )
