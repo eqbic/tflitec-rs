@@ -141,7 +141,7 @@ Or, document this warning in your library to instruct your users.
 
 # Compilation
 
-Current version of the crate builds tag `v2.9.1` of the [tensorflow project].
+Current version of the crate builds tag `v2.18.1` of the [tensorflow project].
 Compiled dynamic library or Framework will be available under `OUT_DIR`
 (see [cargo documentation]) of `tflitec`.
 You won't need this most of the time, because the crate output is linked appropriately.
@@ -151,7 +151,8 @@ For all environments and targets you will need to have:
 
 * `git` CLI to fetch [TensorFlow]
 * [Bazel] to build [TensorFlow], it is recommended to use [bazelisk].
-* Python3 to build [TensorFlow]
+* Python3 to build [TensorFlow] (with numpy package)
+* clang
 
 ## Optimized Build
 To build [TensorFlow] for your machine with native optimizations
