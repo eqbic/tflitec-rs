@@ -448,9 +448,9 @@ mod tests {
     use crate::ErrorKind;
 
     #[cfg(target_os = "windows")]
-    const MODEL_PATH: &str = "tests\\add.bin";
+    const MODEL_PATH: &str = "tests\\add.tflite";
     #[cfg(not(target_os = "windows"))]
-    const MODEL_PATH: &str = "tests/add.bin";
+    const MODEL_PATH: &str = "tests/add.tflite";
     const EDGE_MODEL_PATH: &str = "tests/mobilenet_edge.tflite";
 
     // #[test]
