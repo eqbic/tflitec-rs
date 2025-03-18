@@ -574,8 +574,17 @@ mod tests {
     #[test]
     fn test_interpreter_invoke_edge_tpu() {
         use crate::interpreter::Options;
-        let options = Options::External("/usr/lib/x86_64-linux-gnu/libedgetpu.so.1");
+        let options = Options::External("/usr/lib/libedgetpu.so.1");
         let model = Model::new(EDGE_MODEL_PATH).expect("Cannot load model from file!");
         let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter");
+        interpreter
+            .resize_input(0, tensor::Shape::new(vec![1, 224, 224, 3]))
+            .expect("Resize failed");
+        interpreter
+            .allocate_tensors()
+            .expect("Cannot allocate tensors");
+        let data = [1u8; 150528];
+        assert!(interpreter.copy(&data, 0).is_ok());
+        assert!(interpreter.invoke().is_ok());
     }
 }
