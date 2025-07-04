@@ -6,7 +6,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-const TAG: &str = "v2.18.1";
+const TAG: &str = "v2.19.0";
 const TF_GIT_URL: &str = "https://github.com/tensorflow/tensorflow.git";
 const BAZEL_COPTS_ENV_VAR: &str = "TFLITEC_BAZEL_COPTS";
 const PREBUILT_PATH_ENV_VAR: &str = "TFLITEC_PREBUILT_PATH";
@@ -539,6 +539,8 @@ fn main() {
             prepare_tensorflow_source(tf_src_path.as_path());
             let config = if os == "android" || os == "ios" || (os == "macos" && arch == "arm64") {
                 format!("{}_{}", os, arch)
+            } else if os == "linux" && arch == "arm64" {
+                format!("elinux_aarch64")
             } else {
                 os
             };
