@@ -537,7 +537,11 @@ fn main() {
             // Build from source
             check_and_set_envs();
             prepare_tensorflow_source(tf_src_path.as_path());
-            let config = if os == "android" || os == "ios" || (os == "macos" && arch == "arm64") {
+            let config = if os == "android"
+                || os == "ios"
+                || (os == "macos" && arch == "arm64")
+                || (os == "linux" && arch == "arm64")
+            {
                 format!("{}_{}", os, arch)
             } else {
                 os
