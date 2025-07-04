@@ -152,7 +152,7 @@ For all environments and targets you will need to have:
 * `git` CLI to fetch [TensorFlow]
 * [Bazel] to build [TensorFlow], it is recommended to use [bazelisk].
 * Python3 to build [TensorFlow] (with numpy package)
-* clang
+* clang (at least version 15)
 
 ## Optimized Build
 To build [TensorFlow] for your machine with native optimizations
