@@ -4,7 +4,7 @@
 //!
 //! ```
 //! use tflitec::model::Model;
-//! let model = Model::new("tests/add.bin")?;
+//! let model = Model::new("tests/add.tflite")?;
 //! # Ok::<(), tflitec::Error>(())
 //! ```
 use crate::bindings::{
@@ -93,11 +93,11 @@ impl Drop for Model<'_> {
 mod tests {
     use crate::model::Model;
 
-    const MODEL_PATH: &str = "tests/add.bin";
+    const MODEL_PATH: &str = "tests/add.tflite";
 
     #[test]
     fn test_model_from_bytes() {
-        let mut bytes = std::fs::read("tests/add.bin").unwrap();
+        let mut bytes = std::fs::read(MODEL_PATH).unwrap();
         // If we assign model to a named variable, this test won't compile, because
         // model borrows bytes and will be dropped at the end of the test (after mutation).
         let _ = Model::from_bytes(&bytes).expect("Cannot load model from bytes");

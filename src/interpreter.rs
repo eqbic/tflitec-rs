@@ -448,134 +448,143 @@ mod tests {
     use crate::ErrorKind;
 
     #[cfg(target_os = "windows")]
-    const MODEL_PATH: &str = "tests\\add.bin";
+    const MODEL_PATH: &str = "tests\\add.tflite";
     #[cfg(not(target_os = "windows"))]
-    const MODEL_PATH: &str = "tests/add.bin";
+    const MODEL_PATH: &str = "tests/add.tflite";
     const EDGE_MODEL_PATH: &str = "tests/mobilenet_edge.tflite";
 
-    // #[test]
-    // fn test_interpreter_input_output_count() {
-    //     let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
-    //     let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes");
-    //     let interpreter =
-    //         Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter");
-    //     assert_eq!(interpreter.input_tensor_count(), 1);
-    //     assert_eq!(interpreter.output_tensor_count(), 1);
-    // }
+    #[test]
+    fn test_interpreter_input_output_count() {
+        let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
+        let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes");
+        let interpreter =
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter");
+        assert_eq!(interpreter.input_tensor_count(), 1);
+        assert_eq!(interpreter.output_tensor_count(), 1);
+    }
 
-    // #[test]
-    // fn test_interpreter_get_input_tensor() {
-    //     let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
-    //     let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
-    //     let interpreter =
-    //         Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+    #[test]
+    fn test_interpreter_get_input_tensor() {
+        let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
+        let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
+        let interpreter =
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
-    //     let invalid_tensor = interpreter.input(1);
-    //     assert!(invalid_tensor.is_err());
-    //     let err = invalid_tensor.err().unwrap();
-    //     assert_eq!(ErrorKind::InvalidTensorIndex(1, 0), err.kind());
+        let invalid_tensor = interpreter.input(1);
+        assert!(invalid_tensor.is_err());
+        let err = invalid_tensor.err().unwrap();
+        assert_eq!(ErrorKind::InvalidTensorIndex(1, 0), err.kind());
 
-    //     let invalid_tensor = interpreter.input(0);
-    //     assert!(invalid_tensor.is_err());
-    //     let err = invalid_tensor.err().unwrap();
-    //     assert_eq!(ErrorKind::AllocateTensorsRequired, err.kind());
+        let invalid_tensor = interpreter.input(0);
+        assert!(invalid_tensor.is_err());
+        let err = invalid_tensor.err().unwrap();
+        assert_eq!(ErrorKind::AllocateTensorsRequired, err.kind());
 
-    //     interpreter.allocate_tensors().unwrap();
-    //     let valid_tensor = interpreter.input(0);
-    //     assert!(valid_tensor.is_ok());
-    //     let tensor = valid_tensor.ok().unwrap();
-    //     assert_eq!(tensor.shape().dimensions(), &vec![1, 8, 8, 3])
-    // }
+        interpreter.allocate_tensors().unwrap();
+        let valid_tensor = interpreter.input(0);
+        assert!(valid_tensor.is_ok());
+        let tensor = valid_tensor.ok().unwrap();
+        assert_eq!(tensor.shape().dimensions(), &vec![1, 8, 8, 3])
+    }
 
-    // #[test]
-    // fn test_interpreter_allocate_tensors() {
-    //     let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
-    //     let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
-    //     let interpreter =
-    //         Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+    #[test]
+    fn test_interpreter_allocate_tensors() {
+        let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
+        let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
+        let interpreter =
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
-    //     interpreter
-    //         .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
-    //         .expect("Resize failed");
-    //     interpreter
-    //         .allocate_tensors()
-    //         .expect("Cannot allocate tensors");
-    //     let tensor = interpreter.input(0).unwrap();
-    //     assert_eq!(tensor.shape().dimensions(), &vec![10, 8, 8, 3])
-    // }
+        interpreter
+            .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
+            .expect("Resize failed");
+        interpreter
+            .allocate_tensors()
+            .expect("Cannot allocate tensors");
+        let tensor = interpreter.input(0).unwrap();
+        assert_eq!(tensor.shape().dimensions(), &vec![10, 8, 8, 3])
+    }
 
-    // #[test]
-    // fn test_interpreter_copy_input() {
-    //     let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
-    //     let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
-    //     let interpreter =
-    //         Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+    #[test]
+    fn test_interpreter_copy_input() {
+        let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
+        let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
+        let interpreter =
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
-    //     interpreter
-    //         .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
-    //         .expect("Resize failed");
-    //     interpreter
-    //         .allocate_tensors()
-    //         .expect("Cannot allocate tensors");
-    //     let tensor = interpreter.input(0).unwrap();
-    //     let data = (0..1920).map(|x| x as f32).collect::<Vec<f32>>();
-    //     assert!(interpreter.copy(&data[..], 0).is_ok());
-    //     assert_eq!(data, tensor.data());
-    // }
+        interpreter
+            .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
+            .expect("Resize failed");
+        interpreter
+            .allocate_tensors()
+            .expect("Cannot allocate tensors");
+        let tensor = interpreter.input(0).unwrap();
+        let data = (0..1920).map(|x| x as f32).collect::<Vec<f32>>();
+        assert!(interpreter.copy(&data[..], 0).is_ok());
+        assert_eq!(data, tensor.data());
+    }
 
-    // #[test]
-    // fn test_interpreter_invoke() {
-    //     let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
-    //     let interpreter =
-    //         Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+    #[test]
+    fn test_interpreter_invoke() {
+        let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
+        let interpreter =
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
-    //     interpreter
-    //         .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
-    //         .expect("Resize failed");
-    //     interpreter
-    //         .allocate_tensors()
-    //         .expect("Cannot allocate tensors");
+        interpreter
+            .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
+            .expect("Resize failed");
+        interpreter
+            .allocate_tensors()
+            .expect("Cannot allocate tensors");
 
-    //     let data = (0..1920).map(|x| x as f32).collect::<Vec<f32>>();
-    //     assert!(interpreter.copy(&data[..], 0).is_ok());
-    //     assert!(interpreter.invoke().is_ok());
-    //     let expected: Vec<f32> = data.iter().map(|e| e * 3.0).collect();
-    //     let output_tensor = interpreter.output(0).unwrap();
-    //     assert_eq!(output_tensor.shape().dimensions(), &vec![10, 8, 8, 3]);
-    //     let output_vector = output_tensor.data::<f32>().to_vec();
-    //     assert_eq!(expected, output_vector);
-    // }
+        let data = (0..1920).map(|x| x as f32).collect::<Vec<f32>>();
+        assert!(interpreter.copy(&data[..], 0).is_ok());
+        assert!(interpreter.invoke().is_ok());
+        let expected: Vec<f32> = data.iter().map(|e| e * 3.0).collect();
+        let output_tensor = interpreter.output(0).unwrap();
+        assert_eq!(output_tensor.shape().dimensions(), &vec![10, 8, 8, 3]);
+        let output_vector = output_tensor.data::<f32>().to_vec();
+        assert_eq!(expected, output_vector);
+    }
 
-    // #[cfg(feature = "xnnpack")]
-    // #[test]
-    // fn test_interpreter_invoke_xnnpack() {
-    //     use crate::interpreter::Options;
-    //     let options = Options::Xnnpack(2);
-    //     let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
-    //     let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter!");
+    #[cfg(feature = "xnnpack")]
+    #[test]
+    fn test_interpreter_invoke_xnnpack() {
+        use crate::interpreter::Options;
+        let options = Options::Xnnpack(2);
+        let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
+        let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter!");
 
-    //     interpreter
-    //         .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
-    //         .expect("Resize failed");
-    //     interpreter
-    //         .allocate_tensors()
-    //         .expect("Cannot allocate tensors");
+        interpreter
+            .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
+            .expect("Resize failed");
+        interpreter
+            .allocate_tensors()
+            .expect("Cannot allocate tensors");
 
-    //     let data = (0..1920).map(|x| x as f32).collect::<Vec<f32>>();
-    //     assert!(interpreter.copy(&data[..], 0).is_ok());
-    //     assert!(interpreter.invoke().is_ok());
-    //     let expected: Vec<f32> = data.iter().map(|e| e * 3.0).collect();
-    //     let output_tensor = interpreter.output(0).unwrap();
-    //     assert_eq!(output_tensor.shape().dimensions(), &vec![10, 8, 8, 3]);
-    //     let output_vector = output_tensor.data::<f32>().to_vec();
-    //     assert_eq!(expected, output_vector);
-    // }
+        let data = (0..1920).map(|x| x as f32).collect::<Vec<f32>>();
+        assert!(interpreter.copy(&data[..], 0).is_ok());
+        assert!(interpreter.invoke().is_ok());
+        let expected: Vec<f32> = data.iter().map(|e| e * 3.0).collect();
+        let output_tensor = interpreter.output(0).unwrap();
+        assert_eq!(output_tensor.shape().dimensions(), &vec![10, 8, 8, 3]);
+        let output_vector = output_tensor.data::<f32>().to_vec();
+        assert_eq!(expected, output_vector);
+    }
 
     #[test]
     fn test_interpreter_invoke_edge_tpu() {
         use crate::interpreter::Options;
-        let options = Options::External("/usr/lib/x86_64-linux-gnu/libedgetpu.so.1");
+        let options = Options::External("/usr/lib/libedgetpu.so.1");
         let model = Model::new(EDGE_MODEL_PATH).expect("Cannot load model from file!");
         let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter");
+        interpreter
+            .resize_input(0, tensor::Shape::new(vec![1, 224, 224, 3]))
+            .expect("Resize failed");
+        interpreter
+            .allocate_tensors()
+            .expect("Cannot allocate tensors");
+        let data = [1u8; 150528];
+        assert!(interpreter.copy(&data, 0).is_ok());
+        assert!(interpreter.invoke().is_ok());
     }
 }
