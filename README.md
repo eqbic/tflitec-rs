@@ -37,19 +37,20 @@ The example below shows running inference on a TensorFlow Lite model.
 use tflitec::interpreter::{Interpreter, Options};
 use tflitec::tensor;
 use tflitec::model::Model;
+use std::path::Path;
 
 // Create interpreter options
-let mut options = Options::default();
-options.thread_count = 1;
+let mut options = Options::Default;
 
 // Load example model which outputs y = 3 * x
-let model = Model::new("tests/add.bin")?;
+let model_path = Path::new("tests/add.tflite");
+let model = Model::new(model_path)?;
 // Or initialize with model bytes if it is not available as a file
 // let model_data = std::fs::read("tests/add.bin")?;
 // let model = Model::from_bytes(&model_data)?;
 
 // Create interpreter
-let interpreter = Interpreter::new(&model, Some(options))?;
+let interpreter = Interpreter::new(&model, options)?;
 // Resize input
 let input_shape = tensor::Shape::new(vec![10, 8, 8, 3]);
 let input_element_count = input_shape.dimensions().iter().copied().reduce(std::ops::Mul::mul).unwrap();
