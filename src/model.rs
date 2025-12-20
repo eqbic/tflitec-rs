@@ -3,8 +3,10 @@
 //! # Examples
 //!
 //! ```
+//! use std::path::Path;
 //! use tflitec::model::Model;
-//! let model = Model::new("tests/add.tflite")?;
+//! let model_path = Path::new("tests/add.tflite");
+//! let model = Model::new(model_path)?;
 //! # Ok::<(), tflitec::Error>(())
 //! ```
 use crate::bindings::{
