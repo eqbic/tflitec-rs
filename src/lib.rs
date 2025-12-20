@@ -32,6 +32,6 @@ mod tests {
     #[test]
     fn test_version() {
         let version = super::tf_lite_version();
-        assert_eq!(version, "2.19.0")
+        assert_eq!(version, "2.19.1")
     }
 }
