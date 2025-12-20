@@ -56,10 +56,12 @@ impl<'a> Interpreter<'a> {
     /// # Examples
     ///
     /// ```
+    /// use std::path::Path;
     /// use tflitec::model::Model;
-    /// use tflitec::interpreter::Interpreter;
-    /// let model = Model::new("tests/add.bin")?;
-    /// let interpreter = Interpreter::new(&model, None)?;
+    /// use tflitec::interpreter::{Interpreter, Options};
+    /// let model_path = Path::new("tests/add.tflite");
+    /// let model = Model::new(model_path)?;
+    /// let interpreter = Interpreter::new(&model, Options::Default)?;
     /// # Ok::<(), tflitec::Error>(())
     /// ```
     ///
