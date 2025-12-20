@@ -15,11 +15,22 @@ use std::fmt::{Debug, Formatter};
 pub enum Options {
     Default,
     #[cfg(feature = "xnnpack")]
+    /// The maximum number of CPU threads that the interpreter should run on.
+    ///
+    /// The default is -1 indicating that the [`Interpreter`] will decide
+    /// the number of threads to use. `thread_count` should be >= -1.
+    /// Setting `thread_count` to 0 has the effect to disable multithreading,
+    /// which is equivalent to setting `thread_count` to 1.
+    /// If set to the value -1, the number of threads used will be
+    /// implementation-defined and platform-dependent.
     Xnnpack(i32),
     #[cfg(feature = "external_delegate")]
     External(String),
 }
 
+/// A TensorFlow Lite interpreter that performs inference from a given model.
+///
+/// - Note: Interpreter instances are *not* thread-safe.
 pub struct Interpreter<'a> {
     /// The configuration options for the [`Interpreter`].
     options: Options,
@@ -33,6 +44,7 @@ pub struct Interpreter<'a> {
     /// The underlying `Model` to limit lifetime of the interpreter.
     /// See this issue for details:
     /// <https://github.com/tensorflow/tensorflow/issues/53628>
+    #[allow(dead_code)]
     model: &'a Model<'a>,
 }
 
