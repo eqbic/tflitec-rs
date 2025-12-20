@@ -10,19 +10,22 @@ use crate::{Error, ErrorKind, Result};
 use std::fmt::{Debug, Formatter};
 
 /// Options for configuring the [`Interpreter`].
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Ord, PartialOrd)]
-pub enum Options<'a> {
+#[derive(Debug, Eq, PartialEq, Clone, Hash, Ord, PartialOrd)]
+#[non_exhaustive]
+pub enum Options {
+    Default,
     Xnnpack(i32),
-    External(&'a str),
+    External(String),
 }
 
 pub struct Interpreter<'a> {
     /// The configuration options for the [`Interpreter`].
-    options: Option<Options<'a>>,
+    options: Options,
 
     /// The underlying [`TfLiteInterpreter`] C pointer.
     interpreter_ptr: *mut TfLiteInterpreter,
 
+    /// The optional underlying [`TfLiteDelegate`] C pointer.
     delegate_ptr: Option<*mut TfLiteDelegate>,
 
     /// The underlying `Model` to limit lifetime of the interpreter.
@@ -61,28 +64,26 @@ impl<'a> Interpreter<'a> {
     /// # Errors
     ///
     /// Returns error if TensorFlow Lite C fails internally.
-    pub fn new(model: &'a Model<'a>, options: Option<Options<'a>>) -> Result<Interpreter<'a>> {
+    pub fn new(model: &'a Model<'a>, options: Options) -> Result<Interpreter<'a>> {
         unsafe {
             let options_ptr = TfLiteInterpreterOptionsCreate();
             if options_ptr.is_null() {
                 return Err(Error::new(ErrorKind::FailedToCreateInterpreter));
             }
 
-            let mut delegate_ptr: Option<*mut TfLiteDelegate> = None;
-            if let Some(options) = options{
-                match options {
+            let delegate_ptr: Option<*mut TfLiteDelegate> = match &options {
+                    Options::Default => {
+                        None
+                    }
                     Options::Xnnpack(thread_count) => {
-                        TfLiteInterpreterOptionsSetNumThreads(options_ptr, thread_count);
-                        delegate_ptr = Some(Interpreter::configure_xnnpack(options_ptr, thread_count));
+                        TfLiteInterpreterOptionsSetNumThreads(options_ptr, *thread_count);
+                        Some(Interpreter::configure_xnnpack(options_ptr, *thread_count))
                     }
                     Options::External(delegate_path) => {
                         TfLiteInterpreterOptionsSetNumThreads(options_ptr, -1);
-                        Interpreter::configure_external_delegate(options_ptr, delegate_path);
+                        Some(Interpreter::configure_external_delegate(options_ptr, &delegate_path))
                     }
-                }
-
-
-            }
+                };
 
             // TODO(ebraraktas): TfLiteInterpreterOptionsSetErrorReporter
             let model_ptr = model.model_ptr as *const TfLiteModel;
@@ -302,14 +303,15 @@ impl<'a> Interpreter<'a> {
     }
 
     /// Returns optional reference of [`Options`].
-    pub fn options(&self) -> Option<Options> {
-        self.options
+    pub fn options(&self) -> &Options {
+        &self.options
     }
 
     unsafe fn configure_xnnpack(
         interpreter_options_ptr: *mut TfLiteInterpreterOptions,
         thread_count: i32,
     ) -> *mut TfLiteDelegate {
+
         let mut xnnpack_options = TfLiteXNNPackDelegateOptionsDefault();
         if thread_count > 0 {
             xnnpack_options.num_threads = thread_count;
@@ -340,14 +342,14 @@ impl Drop for Interpreter<'_> {
         unsafe {
             TfLiteInterpreterDelete(self.interpreter_ptr);
             {
-                if let Some(options) = self.options{
-                    if let Some(delegate_ptr) = self.delegate_ptr{
-                        match options {
-                            Options::Xnnpack(_) => TfLiteXNNPackDelegateDelete(delegate_ptr),
-                            Options::External(_) => TfLiteExternalDelegateDelete(delegate_ptr),
-                        }
+                if let Some(delegate_ptr) = self.delegate_ptr{
+                    match &self.options {
+                        Options::Default => {},
+                        Options::Xnnpack(_) => TfLiteXNNPackDelegateDelete(delegate_ptr),
+                        Options::External(_) => TfLiteExternalDelegateDelete(delegate_ptr),
                     }
                 }
+
             }
         }
     }
@@ -372,7 +374,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes");
         let interpreter =
-            Interpreter::new(&model, Some(Options::Xnnpack(1))).expect("Cannot create interpreter");
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter");
         assert_eq!(interpreter.input_tensor_count(), 1);
         assert_eq!(interpreter.output_tensor_count(), 1);
     }
@@ -382,7 +384,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
         let interpreter =
-            Interpreter::new(&model, Some(Options::Xnnpack(1))).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
         let invalid_tensor = interpreter.input(1);
         assert!(invalid_tensor.is_err());
@@ -406,7 +408,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
         let interpreter =
-            Interpreter::new(&model, Some(Options::Xnnpack(1))).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
@@ -423,7 +425,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
         let interpreter =
-            Interpreter::new(&model, Some(Options::Xnnpack(1))).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
@@ -441,7 +443,7 @@ mod tests {
     fn test_interpreter_invoke() {
         let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
         let interpreter =
-            Interpreter::new(&model, Some(Options::Xnnpack(1))).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
@@ -465,7 +467,7 @@ mod tests {
         use crate::interpreter::Options;
         let options = Options::Xnnpack(2);
         let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
-        let interpreter = Interpreter::new(&model, Some(options)).expect("Cannot create interpreter!");
+        let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
@@ -487,9 +489,9 @@ mod tests {
     #[test]
     fn test_interpreter_invoke_edge_tpu() {
         use crate::interpreter::Options;
-        let options = Options::External("/usr/lib/libedgetpu.so.1");
+        let options = Options::External("libedgetpu.so.1".to_string());
         let model = Model::new(EDGE_MODEL_PATH).expect("Cannot load model from file!");
-        let interpreter = Interpreter::new(&model, Some(options)).expect("Cannot create interpreter");
+        let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter");
         interpreter
             .resize_input(0, tensor::Shape::new(vec![1, 224, 224, 3]))
             .expect("Resize failed");
