@@ -371,15 +371,13 @@ impl Drop for Interpreter<'_> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
     use crate::interpreter::Interpreter;
     use crate::interpreter::Options;
     use crate::model::Model;
     use crate::tensor;
     use crate::ErrorKind;
 
-    #[cfg(target_os = "windows")]
-    const MODEL_PATH: &str = "tests\\add.tflite";
-    #[cfg(not(target_os = "windows"))]
     const MODEL_PATH: &str = "tests/add.tflite";
     const EDGE_MODEL_PATH: &str = "tests/mobilenet_edge.tflite";
 
@@ -455,7 +453,7 @@ mod tests {
 
     #[test]
     fn test_interpreter_invoke() {
-        let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
+        let model = Model::new(Path::new(MODEL_PATH)).expect("Cannot load model from file!");
         let interpreter =
             Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
 
@@ -481,7 +479,7 @@ mod tests {
     fn test_interpreter_invoke_xnnpack() {
         use crate::interpreter::Options;
         let options = Options::Xnnpack(2);
-        let model = Model::new(MODEL_PATH).expect("Cannot load model from file!");
+        let model = Model::new(Path::new(MODEL_PATH)).expect("Cannot load model from file!");
         let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter!");
 
         interpreter
@@ -506,7 +504,7 @@ mod tests {
     fn test_interpreter_invoke_edge_tpu() {
         use crate::interpreter::Options;
         let options = Options::External("libedgetpu.so.1".to_string());
-        let model = Model::new(EDGE_MODEL_PATH).expect("Cannot load model from file!");
+        let model = Model::new(Path::new(EDGE_MODEL_PATH)).expect("Cannot load model from file!");
         let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter");
         interpreter
             .resize_input(0, tensor::Shape::new(vec![1, 224, 224, 3]))
