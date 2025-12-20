@@ -21,10 +21,11 @@ fs_extra = "1.3"
 curl = "0.4"
 
 [features]
-default = ["xnnpack"]
+default = ["xnnpack", "external_delegate"]
 xnnpack = []
 xnnpack_qu8 = ["xnnpack"]
 xnnpack_qs8 = ["xnnpack"]
+external_delegate = []
 
 # docs.rs-specific configuration
 [package.metadata.docs.rs]
