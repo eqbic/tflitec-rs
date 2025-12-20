@@ -1,6 +1,6 @@
 [package]
 name = "tflitec"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["ebraraktas <ebrar@voys.ai>"]
 edition = "2018"
 license = "MIT"
@@ -16,7 +16,7 @@ name = "tflitec"
 [dependencies]
 
 [build-dependencies]
-bindgen = "0.65"
+bindgen = "0.72"
 fs_extra = "1.3"
 curl = "0.4"
 
