@@ -13,6 +13,7 @@ use crate::bindings::{
 use crate::{Error, ErrorKind, Result};
 use std::ffi::{c_void, CString};
 use std::fmt::{Debug, Formatter};
+use std::path::Path;
 
 /// A TensorFlow Lite model used by the [`Interpreter`][crate::interpreter::Interpreter] to perform inference.
 pub struct Model<'a> {
@@ -46,7 +47,11 @@ impl Model<'_> {
     /// # Errors
     ///
     /// Returns error if TensorFlow Lite C fails to read model from file.
-    pub fn new<'a>(filepath: &str) -> Result<Model<'a>> {
+    pub fn new<'a>(filepath: &Path) -> Result<Model<'a>> {
+        let filepath = match filepath.to_str(){
+            Some(s) => s,
+            None => return Err(Error::new(ErrorKind::FailedToLoadModel))
+        };
         let model_ptr = unsafe {
             let path = CString::new(filepath).unwrap();
             TfLiteModelCreateFromFile(path.as_ptr())
@@ -91,6 +96,7 @@ impl Drop for Model<'_> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
     use crate::model::Model;
 
     const MODEL_PATH: &str = "tests/add.tflite";
@@ -106,9 +112,7 @@ mod tests {
 
     #[test]
     fn test_model_from_path() {
-        let mut filepath = String::from(MODEL_PATH);
+        let filepath = Path::new(MODEL_PATH);
         let _model = Model::new(&filepath).expect("Cannot load model from file");
-        // We can mutate filepath here, because it is not borrowed.
-        filepath.push('/');
     }
 }
