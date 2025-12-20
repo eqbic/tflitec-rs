@@ -9,15 +9,16 @@ Its API is very similar to that of [TensorFlow Lite Swift API].
 Targets below are tested. However, others may work, too.
 * iOS: `aarch64-apple-ios` and `x86_64-apple-ios`
 * MacOS: `x86_64-apple-darwin`
-* Linux: `x86_64-unknown-linux-gnu`
+* Linux: `x86_64-unknown-linux-gnu` and `aarch64-unknown-linux-gnu`
 * Android: `aarch64-linux-android` and `armv7-linux-androideabi`
 * Windows ([see details](#Windows))
 
-See [compilation](#compilation) section to see build instructions for your target. Please
+See [compilarmation](#compilation) section to see build instructions for your target. Please
 read [Optimized Build](#optimized_build) section carefully.
 
 # Features
 
+* `external_delegate` - Enables support for external delegates (e.g. Google Edge TPU)
 * `xnnpack` - Compiles XNNPACK and allows you to use XNNPACK delegate. See details of XNNPACK
 on [here][XNNPACK_blog].
 * `xnnpack_qs8` - Compiles XNNPACK with additional build flags to accelerate inference of
