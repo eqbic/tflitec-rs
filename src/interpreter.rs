@@ -12,64 +12,10 @@ use std::fmt::{Debug, Formatter};
 /// Options for configuring the [`Interpreter`].
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Ord, PartialOrd)]
 pub enum Options<'a> {
-    /// The maximum number of CPU threads that the interpreter should run on.
-    ///
-    /// The default is -1 indicating that the [`Interpreter`] will decide
-    /// the number of threads to use. `thread_count` should be >= -1.
-    /// Setting `thread_count` to 0 has the effect to disable multithreading,
-    /// which is equivalent to setting `thread_count` to 1.
-    /// If set to the value -1, the number of threads used will be
-    /// implementation-defined and platform-dependent.
-    // pub thread_count: i32,
-
-    /// Indicates whether an optimized set of floating point CPU kernels, provided by XNNPACK, is
-    /// enabled.
-    ///
-    /// Enabling this flag will enable use of a new, highly optimized set of CPU kernels provided
-    /// via the XNNPACK delegate. ~~Currently, this is restricted to a subset of floating point
-    /// operations.~~
-    /// See [official README](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/delegates/xnnpack/README.md) for more details.
-    ///
-    /// ## Important:
-    /// Things to keep in mind when enabling this flag:
-    ///
-    /// * Startup time and resize time may increase.
-    /// * Baseline memory consumption may increase.
-    /// * Quantized models will not see any benefit unless features `xnnpack_qu8` or `xnnpack_qs8`
-    /// are enabled.
-    // #[cfg(feature = "xnnpack")]
-    // #[cfg_attr(docsrs, doc(cfg(feature = "xnnpack")))]
-    // pub is_xnnpack_enabled: bool,
-
-    // pub delegate_ptr: *mut TfLiteDelegate,
     Xnnpack(i32),
     External(&'a str),
 }
 
-// impl Default for Options {
-//     fn default() -> Self {
-//         Self {
-//             thread_count: -1,
-//             #[cfg(feature = "xnnpack")]
-//             is_xnnpack_enabled: true,
-//             delegate_ptr: unsafe { Options::configure_xnnpack(-1) },
-//         }
-//     }
-// }
-
-// impl Options {
-//     pub fn new(external_delegate_path: &str) -> Self {
-//         Self {
-//             thread_count: 1,
-//             is_xnnpack_enabled: false,
-//             delegate_ptr: unsafe { Options::configure_external_delegate(external_delegate_path) },
-//         }
-//     }
-// }
-
-/// A TensorFlow Lite interpreter that performs inference from a given model.
-///
-/// - Note: Interpreter instances are *not* thread-safe.
 pub struct Interpreter<'a> {
     /// The configuration options for the [`Interpreter`].
     options: Options<'a>,
@@ -407,20 +353,7 @@ impl<'a> Interpreter<'a> {
         external_delegate_ptr
     }
 
-    // #[cfg(feature = "xnnpack")]
-    // unsafe fn configure_xnnpack(
-    //     options: &Options,
-    //     interpreter_options_ptr: *mut TfLiteInterpreterOptions,
-    // ) -> *mut TfLiteDelegate {
-    //     let mut xnnpack_options = TfLiteXNNPackDelegateOptionsDefault();
-    //     if options.thread_count > 0 {
-    //         xnnpack_options.num_threads = options.thread_count
-    //     }
 
-    //     let xnnpack_delegate_ptr = TfLiteXNNPackDelegateCreate(&xnnpack_options);
-    //     TfLiteInterpreterOptionsAddDelegate(interpreter_options_ptr, xnnpack_delegate_ptr);
-    //     xnnpack_delegate_ptr
-    // }
 }
 
 impl Drop for Interpreter<'_> {
