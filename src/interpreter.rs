@@ -386,7 +386,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes");
         let interpreter =
-            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter");
+            Interpreter::new(&model, Options::Default).expect("Cannot create interpreter");
         assert_eq!(interpreter.input_tensor_count(), 1);
         assert_eq!(interpreter.output_tensor_count(), 1);
     }
@@ -396,7 +396,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
         let interpreter =
-            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Default).expect("Cannot create interpreter!");
 
         let invalid_tensor = interpreter.input(1);
         assert!(invalid_tensor.is_err());
@@ -420,7 +420,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
         let interpreter =
-            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Default).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
@@ -437,7 +437,7 @@ mod tests {
         let bytes = std::fs::read(MODEL_PATH).expect("Cannot read model data!");
         let model = Model::from_bytes(&bytes).expect("Cannot load model from bytes!");
         let interpreter =
-            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Default).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
@@ -455,7 +455,7 @@ mod tests {
     fn test_interpreter_invoke() {
         let model = Model::new(Path::new(MODEL_PATH)).expect("Cannot load model from file!");
         let interpreter =
-            Interpreter::new(&model, Options::Xnnpack(1)).expect("Cannot create interpreter!");
+            Interpreter::new(&model, Options::Default).expect("Cannot create interpreter!");
 
         interpreter
             .resize_input(0, tensor::Shape::new(vec![10, 8, 8, 3]))
