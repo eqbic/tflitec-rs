@@ -167,20 +167,19 @@ impl<'a> Drop for SignatureRunner<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::interpreter::Interpreter;
+    use std::path::Path;
+    use crate::interpreter::{Interpreter, Options};
     use crate::model::Model;
     use crate::tensor;
     use crate::ErrorKind;
 
-    #[cfg(target_os = "windows")]
-    const MODEL_PATH: &str = "tests\\signatures.bin";
-    #[cfg(not(target_os = "windows"))]
+ 
     const MODEL_PATH: &str = "tests/signatures.bin";
-
+    
     #[test]
     fn test_signature_model_interpreter() {
-        let model = Model::new(MODEL_PATH).unwrap();
-        let interpreter = Interpreter::new(&model, None).unwrap();
+        let model = Model::new(Path::new(MODEL_PATH)).unwrap();
+        let interpreter = Interpreter::new(&model, Options::Default).unwrap();
 
         assert_eq!(interpreter.signature_count(), 2);
         assert_eq!(interpreter.get_signature_key(0), Ok("add"));
@@ -189,8 +188,8 @@ mod tests {
 
     #[test]
     fn test_signature_runner_invoke() {
-        let model = Model::new(MODEL_PATH).unwrap();
-        let interpreter = Interpreter::new(&model, None).unwrap();
+        let model = Model::new(Path::new(MODEL_PATH)).unwrap();
+        let interpreter = Interpreter::new(&model, Options::Default).unwrap();
 
         let add = interpreter.get_signature_runner("add").unwrap();
         assert_eq!(add.input_count(), 2);
