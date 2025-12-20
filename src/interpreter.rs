@@ -14,7 +14,9 @@ use std::fmt::{Debug, Formatter};
 #[non_exhaustive]
 pub enum Options {
     Default,
+    #[cfg(feature = "xnnpack")]
     Xnnpack(i32),
+    #[cfg(feature = "external_delegate")]
     External(String),
 }
 
@@ -74,11 +76,13 @@ impl<'a> Interpreter<'a> {
             let delegate_ptr: Option<*mut TfLiteDelegate> = match &options {
                     Options::Default => {
                         None
-                    }
+                    },
+                    #[cfg(feature = "xnnpack")]
                     Options::Xnnpack(thread_count) => {
                         TfLiteInterpreterOptionsSetNumThreads(options_ptr, *thread_count);
                         Some(Interpreter::configure_xnnpack(options_ptr, *thread_count))
-                    }
+                    },
+                    #[cfg(feature = "external_delegate")]
                     Options::External(delegate_path) => {
                         TfLiteInterpreterOptionsSetNumThreads(options_ptr, -1);
                         Some(Interpreter::configure_external_delegate(options_ptr, &delegate_path))
@@ -307,6 +311,7 @@ impl<'a> Interpreter<'a> {
         &self.options
     }
 
+    #[cfg(feature = "xnnpack")]
     unsafe fn configure_xnnpack(
         interpreter_options_ptr: *mut TfLiteInterpreterOptions,
         thread_count: i32,
@@ -322,6 +327,7 @@ impl<'a> Interpreter<'a> {
         xnnpack_delegate_ptr
     }
 
+    #[cfg(feature = "external_delegate")]
     unsafe fn configure_external_delegate(
         interpreter_options_ptr: *mut TfLiteInterpreterOptions,
         external_delegate_path: &str,
@@ -342,12 +348,20 @@ impl Drop for Interpreter<'_> {
         unsafe {
             TfLiteInterpreterDelete(self.interpreter_ptr);
             {
-                if let Some(delegate_ptr) = self.delegate_ptr{
-                    match &self.options {
-                        Options::Default => {},
-                        Options::Xnnpack(_) => TfLiteXNNPackDelegateDelete(delegate_ptr),
-                        Options::External(_) => TfLiteExternalDelegateDelete(delegate_ptr),
-                    }
+                match &self.options {
+                    Options::Default => {},
+                    #[cfg(feature = "xnnpack")]
+                    Options::Xnnpack(_) => {
+                        if let Some(delegate_ptr) = self.delegate_ptr{
+                            TfLiteXNNPackDelegateDelete(delegate_ptr)
+                        }
+                    },
+                    #[cfg(feature = "external_delegate")]
+                    Options::External(_) => {
+                        if let Some(delegate_ptr) = self.delegate_ptr{
+                            TfLiteExternalDelegateDelete(delegate_ptr)
+                        }
+                    },
                 }
 
             }
@@ -462,6 +476,7 @@ mod tests {
         assert_eq!(expected, output_vector);
     }
 
+    #[cfg(feature = "xnnpack")]
     #[test]
     fn test_interpreter_invoke_xnnpack() {
         use crate::interpreter::Options;
@@ -485,7 +500,8 @@ mod tests {
         let output_vector = output_tensor.data::<f32>().to_vec();
         assert_eq!(expected, output_vector);
     }
-
+    
+    #[cfg(feature = "external_delegate")]
     #[test]
     fn test_interpreter_invoke_edge_tpu() {
         use crate::interpreter::Options;
