@@ -23,14 +23,11 @@ pub struct Interpreter<'a> {
     /// The underlying [`TfLiteInterpreter`] C pointer.
     interpreter_ptr: *mut TfLiteInterpreter,
 
-    /// The underlying [`TfLiteDelegate`] C pointer for XNNPACK delegate.
-    #[cfg(feature = "xnnpack")]
     delegate_ptr: Option<*mut TfLiteDelegate>,
 
     /// The underlying `Model` to limit lifetime of the interpreter.
     /// See this issue for details:
     /// <https://github.com/tensorflow/tensorflow/issues/53628>
-    #[allow(dead_code)]
     model: &'a Model<'a>,
 }
 
@@ -98,7 +95,6 @@ impl<'a> Interpreter<'a> {
                 Ok(Interpreter {
                     options,
                     interpreter_ptr,
-                    #[cfg(feature = "xnnpack")]
                     delegate_ptr,
                     model,
                 })
@@ -343,8 +339,6 @@ impl Drop for Interpreter<'_> {
     fn drop(&mut self) {
         unsafe {
             TfLiteInterpreterDelete(self.interpreter_ptr);
-
-            #[cfg(feature = "xnnpack")]
             {
                 if let Some(options) = self.options{
                     if let Some(delegate_ptr) = self.delegate_ptr{
@@ -466,7 +460,6 @@ mod tests {
         assert_eq!(expected, output_vector);
     }
 
-    #[cfg(feature = "xnnpack")]
     #[test]
     fn test_interpreter_invoke_xnnpack() {
         use crate::interpreter::Options;
