@@ -150,7 +150,7 @@ impl<'a> Interpreter<'a> {
         }
         unsafe {
             let tensor_ptr = TfLiteInterpreterGetInputTensor(self.interpreter_ptr, index as i32);
-            Tensor::from_raw(tensor_ptr as *mut TfLiteTensor).map_err(|error| {
+            Tensor::from_raw(tensor_ptr).map_err(|error| {
                 if error.kind() == ErrorKind::ReadTensorError {
                     Error::new(ErrorKind::AllocateTensorsRequired)
                 } else {
