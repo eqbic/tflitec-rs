@@ -173,6 +173,7 @@ fn check_and_set_envs() {
         ["USE_DEFAULT_PYTHON_LIB_PATH", "1"],
         ["TF_NEED_OPENCL", "0"],
         ["TF_CUDA_CLANG", "0"],
+        ["TF_NEED_CLANG", "0"],
         ["TF_NEED_TENSORRT", "0"],
         ["TF_DOWNLOAD_CLANG", "0"],
         ["TF_NEED_MPI", "0"],
