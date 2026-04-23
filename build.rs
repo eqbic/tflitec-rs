@@ -397,57 +397,57 @@ fn generate_bindings(tf_src_path: PathBuf) {
         .expect("Couldn't write bindings!");
 }
 
-fn install_prebuilt(prebuilt_tflitec_path: &str, tf_src_path: &Path, lib_output_path: &PathBuf) {
-    // Copy prebuilt library to given path
-    {
-        let prebuilt_tflitec_path = PathBuf::from(prebuilt_tflitec_path);
-        // Copy .{so,dylib,dll,Framework} file
-        copy_or_overwrite(&prebuilt_tflitec_path, lib_output_path);
+// fn install_prebuilt(prebuilt_tflitec_path: &str, tf_src_path: &Path, lib_output_path: &PathBuf) {
+//     // Copy prebuilt library to given path
+//     {
+//         let prebuilt_tflitec_path = PathBuf::from(prebuilt_tflitec_path);
+//         // Copy .{so,dylib,dll,Framework} file
+//         copy_or_overwrite(&prebuilt_tflitec_path, lib_output_path);
 
-        if target_os() == "windows" {
-            // Copy .lib file
-            let mut prebuilt_lib_path = prebuilt_tflitec_path;
-            prebuilt_lib_path.set_extension("lib");
-            if !prebuilt_lib_path.exists() {
-                panic!("A prebuilt windows .dll file must have the corresponding .lib file under the same directory!")
-            }
-            let mut lib_file_path = lib_output_path.clone();
-            lib_file_path.set_extension("lib");
-            copy_or_overwrite(prebuilt_lib_path, lib_file_path);
-        }
-    }
+//         if target_os() == "windows" {
+//             // Copy .lib file
+//             let mut prebuilt_lib_path = prebuilt_tflitec_path;
+//             prebuilt_lib_path.set_extension("lib");
+//             if !prebuilt_lib_path.exists() {
+//                 panic!("A prebuilt windows .dll file must have the corresponding .lib file under the same directory!")
+//             }
+//             let mut lib_file_path = lib_output_path.clone();
+//             lib_file_path.set_extension("lib");
+//             copy_or_overwrite(prebuilt_lib_path, lib_file_path);
+//         }
+//     }
 
-    copy_or_download_headers(
-        tf_src_path,
-        &[
-            "tensorflow/lite/c/c_api.h",
-            "tensorflow/lite/core/c/c_api.h",
-            "tensorflow/lite/core/c/c_api_types.h",
-            "tensorflow/lite/core/c/operator.h",
-            "tensorflow/lite/core/async/c/types.h",
-            "tensorflow/lite/builtin_ops.h",
-            "tensorflow/compiler/mlir/lite/core/c/tflite_types.h",
-        ],
-    );
-    if cfg!(feature = "xnnpack") {
-        copy_or_download_headers(
-            tf_src_path,
-            &[
-                "tensorflow/lite/delegates/xnnpack/xnnpack_delegate.h",
-                "tensorflow/lite/delegates/external/external_delegate.h",
-                "tensorflow/lite/core/c/common.h",
-            ],
-        );
-    }
-}
+//     copy_or_download_headers(
+//         tf_src_path,
+//         &[
+//             "tensorflow/lite/c/c_api.h",
+//             "tensorflow/lite/core/c/c_api.h",
+//             "tensorflow/lite/core/c/c_api_types.h",
+//             "tensorflow/lite/core/c/operator.h",
+//             "tensorflow/lite/core/async/c/types.h",
+//             "tensorflow/lite/builtin_ops.h",
+//             "tensorflow/compiler/mlir/lite/core/c/tflite_types.h",
+//         ],
+//     );
+//     if cfg!(feature = "xnnpack") {
+//         copy_or_download_headers(
+//             tf_src_path,
+//             &[
+//                 "tensorflow/lite/delegates/xnnpack/xnnpack_delegate.h",
+//                 "tensorflow/lite/delegates/external/external_delegate.h",
+//                 "tensorflow/lite/core/c/common.h",
+//             ],
+//         );
+//     }
+// }
 
-fn copy_or_download_headers(tf_src_path: &Path, file_paths: &[&str]) {
-    if let Some(header_src_dir) = get_target_dependent_env_var(HEADER_DIR_ENV_VAR) {
-        copy_headers(Path::new(&header_src_dir), tf_src_path, file_paths)
-    } else {
-        download_headers(tf_src_path, file_paths)
-    }
-}
+// fn copy_or_download_headers(tf_src_path: &Path, file_paths: &[&str]) {
+//     if let Some(header_src_dir) = get_target_dependent_env_var(HEADER_DIR_ENV_VAR) {
+//         copy_headers(Path::new(&header_src_dir), tf_src_path, file_paths)
+//     } else {
+//         download_headers(tf_src_path, file_paths)
+//     }
+// }
 
 fn copy_headers(header_src_dir: &Path, tf_src_path: &Path, file_paths: &[&str]) {
     // Download header files from Github
@@ -463,34 +463,34 @@ fn copy_headers(header_src_dir: &Path, tf_src_path: &Path, file_paths: &[&str]) 
     }
 }
 
-fn download_headers(tf_src_path: &Path, file_paths: &[&str]) {
-    // Download header files from Github
-    for file_path in file_paths {
-        let download_path = tf_src_path.join(file_path);
-        if download_path.exists() {
-            continue;
-        }
-        if let Some(p) = download_path.parent() {
-            std::fs::create_dir_all(p).expect("Cannot generate header dir");
-        }
-        let url =
-            format!("https://raw.githubusercontent.com/tensorflow/tensorflow/{TAG}/{file_path}");
-        download_file(&url, download_path.as_path());
-    }
-}
+// fn download_headers(tf_src_path: &Path, file_paths: &[&str]) {
+//     // Download header files from Github
+//     for file_path in file_paths {
+//         let download_path = tf_src_path.join(file_path);
+//         if download_path.exists() {
+//             continue;
+//         }
+//         if let Some(p) = download_path.parent() {
+//             std::fs::create_dir_all(p).expect("Cannot generate header dir");
+//         }
+//         let url =
+//             format!("https://raw.githubusercontent.com/tensorflow/tensorflow/{TAG}/{file_path}");
+//         download_file(&url, download_path.as_path());
+//     }
+// }
 
-fn download_file(url: &str, path: &Path) {
-    let mut easy = curl::easy::Easy::new();
-    let output_file = std::fs::File::create(path).unwrap();
-    let mut writer = std::io::BufWriter::new(output_file);
-    easy.url(url).unwrap();
-    easy.write_function(move |data| Ok(writer.write(data).unwrap()))
-        .unwrap();
-    easy.perform().unwrap_or_else(|e| {
-        std::fs::remove_file(path).unwrap(); // Delete corrupted or empty file
-        panic!("Error occurred while downloading from {}: {:?}", url, e);
-    });
-}
+// fn download_file(url: &str, path: &Path) {
+//     let mut easy = curl::easy::Easy::new();
+//     let output_file = std::fs::File::create(path).unwrap();
+//     let mut writer = std::io::BufWriter::new(output_file);
+//     easy.url(url).unwrap();
+//     easy.write_function(move |data| Ok(writer.write(data).unwrap()))
+//         .unwrap();
+//     easy.perform().unwrap_or_else(|e| {
+//         std::fs::remove_file(path).unwrap(); // Delete corrupted or empty file
+//         panic!("Error occurred while downloading from {}: {:?}", url, e);
+//     });
+// }
 
 fn main() {
     {
@@ -510,6 +510,7 @@ fn main() {
     let out_path = out_dir();
     let os = target_os();
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("Unable to get TARGET_ARCH");
+    println!("arch: {arch}");
     let arch = match arch.as_str() {
         "aarch64" => String::from("arm64"),
         "armv7" => {
@@ -535,25 +536,25 @@ fn main() {
         let tf_src_path = out_path.join(format!("tensorflow_{TAG}"));
         let lib_output_path = lib_output_path();
 
-        if let Some(prebuilt_tflitec_path) = get_target_dependent_env_var(PREBUILT_PATH_ENV_VAR) {
-            install_prebuilt(&prebuilt_tflitec_path, &tf_src_path, &lib_output_path);
+        // if let Some(prebuilt_tflitec_path) = get_target_dependent_env_var(PREBUILT_PATH_ENV_VAR) {
+        //     install_prebuilt(&prebuilt_tflitec_path, &tf_src_path, &lib_output_path);
+        // } else {
+        // Build from source
+        check_and_set_envs();
+        prepare_tensorflow_source(tf_src_path.as_path());
+        let config = if os == "android" || os == "ios" || (os == "macos" && arch == "arm64") {
+            format!("{os}_{arch}")
+        } else if os == "linux" && arch == "arm64" {
+            format!("elinux_aarch64")
         } else {
-            // Build from source
-            check_and_set_envs();
-            prepare_tensorflow_source(tf_src_path.as_path());
-            let config = if os == "android" || os == "ios" || (os == "macos" && arch == "arm64") {
-                format!("{os}_{arch}")
-            } else if os == "linux" && arch == "arm64" {
-                format!("elinux_aarch64")
-            } else {
-                os
-            };
-            build_tensorflow_with_bazel(
-                tf_src_path.to_str().unwrap(),
-                &config,
-                lib_output_path.as_path(),
-            );
-        }
+            os
+        };
+        build_tensorflow_with_bazel(
+            tf_src_path.to_str().unwrap(),
+            &config,
+            lib_output_path.as_path(),
+        );
+        // }
 
         // Generate bindings using headers
         generate_bindings(tf_src_path);
