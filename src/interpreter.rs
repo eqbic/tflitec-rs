@@ -89,20 +89,21 @@ impl<'a> Interpreter<'a> {
             }
 
             let delegate_ptr: Option<*mut TfLiteDelegate> = match &options {
-                    Options::Default => {
-                        None
-                    },
-                    #[cfg(feature = "xnnpack")]
-                    Options::Xnnpack(thread_count) => {
-                        TfLiteInterpreterOptionsSetNumThreads(options_ptr, *thread_count);
-                        Some(Interpreter::configure_xnnpack(options_ptr, *thread_count))
-                    },
-                    #[cfg(feature = "external_delegate")]
-                    Options::External(delegate_path) => {
-                        TfLiteInterpreterOptionsSetNumThreads(options_ptr, -1);
-                        Some(Interpreter::configure_external_delegate(options_ptr, &delegate_path))
-                    }
-                };
+                Options::Default => None,
+                #[cfg(feature = "xnnpack")]
+                Options::Xnnpack(thread_count) => {
+                    TfLiteInterpreterOptionsSetNumThreads(options_ptr, *thread_count);
+                    Some(Interpreter::configure_xnnpack(options_ptr, *thread_count))
+                }
+                #[cfg(feature = "external_delegate")]
+                Options::External(delegate_path) => {
+                    TfLiteInterpreterOptionsSetNumThreads(options_ptr, -1);
+                    Some(Interpreter::configure_external_delegate(
+                        options_ptr,
+                        &delegate_path,
+                    ))
+                }
+            };
 
             // TODO(ebraraktas): TfLiteInterpreterOptionsSetErrorReporter
             let model_ptr = model.model_ptr as *const TfLiteModel;
@@ -358,7 +359,6 @@ impl<'a> Interpreter<'a> {
         interpreter_options_ptr: *mut TfLiteInterpreterOptions,
         thread_count: i32,
     ) -> *mut TfLiteDelegate {
-
         let mut xnnpack_options = TfLiteXNNPackDelegateOptionsDefault();
         if thread_count > 0 {
             xnnpack_options.num_threads = thread_count;
@@ -381,8 +381,6 @@ impl<'a> Interpreter<'a> {
         TfLiteInterpreterOptionsAddDelegate(interpreter_options_ptr, external_delegate_ptr);
         external_delegate_ptr
     }
-
-
 }
 
 impl Drop for Interpreter<'_> {
@@ -391,19 +389,19 @@ impl Drop for Interpreter<'_> {
             TfLiteInterpreterDelete(self.interpreter_ptr);
             {
                 match &self.options {
-                    Options::Default => {},
+                    Options::Default => {}
                     #[cfg(feature = "xnnpack")]
                     Options::Xnnpack(_) => {
-                        if let Some(delegate_ptr) = self.delegate_ptr{
+                        if let Some(delegate_ptr) = self.delegate_ptr {
                             TfLiteXNNPackDelegateDelete(delegate_ptr)
                         }
-                    },
+                    }
                     #[cfg(feature = "external_delegate")]
                     Options::External(_) => {
-                        if let Some(delegate_ptr) = self.delegate_ptr{
+                        if let Some(delegate_ptr) = self.delegate_ptr {
                             TfLiteExternalDelegateDelete(delegate_ptr)
                         }
-                    },
+                    }
                 }
             }
         }
@@ -412,12 +410,12 @@ impl Drop for Interpreter<'_> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
     use crate::interpreter::Interpreter;
     use crate::interpreter::Options;
     use crate::model::Model;
     use crate::tensor;
     use crate::ErrorKind;
+    use std::path::Path;
 
     const MODEL_PATH: &str = "tests/add.tflite";
     const EDGE_MODEL_PATH: &str = "tests/mobilenet_edge.tflite";
@@ -544,7 +542,7 @@ mod tests {
     #[test]
     fn test_interpreter_invoke_edge_tpu() {
         use crate::interpreter::Options;
-        let options = Options::External("libedgetpu.so.1".to_string());
+        let options = Options::External("/usr/lib/libedgetpu.so.1".to_string());
         let model = Model::new(Path::new(EDGE_MODEL_PATH)).expect("Cannot load model from file!");
         let interpreter = Interpreter::new(&model, options).expect("Cannot create interpreter");
         interpreter
