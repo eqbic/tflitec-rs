@@ -100,7 +100,7 @@ impl<'a> Interpreter<'a> {
                     TfLiteInterpreterOptionsSetNumThreads(options_ptr, -1);
                     Some(Interpreter::configure_external_delegate(
                         options_ptr,
-                        &delegate_path,
+                        delegate_path,
                     ))
                 }
             };
