@@ -378,6 +378,11 @@ impl<'a> Interpreter<'a> {
         let external_delegate_options =
             TfLiteExternalDelegateOptionsDefault(c_delegate_path.as_ptr());
         let external_delegate_ptr = TfLiteExternalDelegateCreate(&external_delegate_options);
+        assert!(
+            !external_delegate_ptr.is_null(),
+            "TfLiteExternalDelegateCreate returned null for path: {}",
+            external_delegate_path
+        );
         TfLiteInterpreterOptionsAddDelegate(interpreter_options_ptr, external_delegate_ptr);
         external_delegate_ptr
     }
