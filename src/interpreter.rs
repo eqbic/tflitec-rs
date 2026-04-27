@@ -108,7 +108,6 @@ impl<'a> Interpreter<'a> {
             // TODO(ebraraktas): TfLiteInterpreterOptionsSetErrorReporter
             let model_ptr = model.model_ptr as *const TfLiteModel;
             let interpreter_ptr = TfLiteInterpreterCreate(model_ptr, options_ptr);
-            TfLiteInterpreterOptionsDelete(options_ptr);
 
             if interpreter_ptr.is_null() {
                 Err(Error::new(ErrorKind::FailedToCreateInterpreter))
