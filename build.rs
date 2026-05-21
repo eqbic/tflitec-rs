@@ -128,7 +128,7 @@ fn get_python_bin_path() -> Option<PathBuf> {
         }
     }
 }
-
+#[cfg(feature = "download-tensorflow")]
 fn prepare_tensorflow_source(tf_src_path: &Path) {
     let complete_clone_hint_file = tf_src_path.join(".complete_clone");
     if !complete_clone_hint_file.exists() {
@@ -446,7 +446,12 @@ fn copy_or_download_headers(tf_src_path: &Path, file_paths: &[&str]) {
     if let Some(header_src_dir) = get_target_dependent_env_var(HEADER_DIR_ENV_VAR) {
         copy_headers(Path::new(&header_src_dir), tf_src_path, file_paths)
     } else {
-        download_headers(tf_src_path, file_paths)
+        #[cfg(feature = "download-tensorflow")]
+        download_headers(tf_src_path, file_paths);
+        #[cfg(not(feature = "download-tensorflow"))]
+        {
+            panic!("TFLITEC_HEADER_DIR must be set when download-tensorflow feature is disabled");
+        }
     }
 }
 
@@ -463,7 +468,7 @@ fn copy_headers(header_src_dir: &Path, tf_src_path: &Path, file_paths: &[&str]) 
         copy_or_overwrite(header_src_dir.join(file_path), dst_path);
     }
 }
-
+#[cfg(feature = "download-tensorflow")]
 fn download_headers(tf_src_path: &Path, file_paths: &[&str]) {
     // Download header files from Github
     for file_path in file_paths {
@@ -476,10 +481,12 @@ fn download_headers(tf_src_path: &Path, file_paths: &[&str]) {
         }
         let url =
             format!("https://raw.githubusercontent.com/tensorflow/tensorflow/{TAG}/{file_path}");
+        #[cfg(feature = "download-tensorflow")]
         download_file(&url, download_path.as_path());
     }
 }
 
+#[cfg(feature = "download-tensorflow")]
 fn download_file(url: &str, path: &Path) {
     let mut easy = curl::easy::Easy::new();
     let output_file = std::fs::File::create(path).unwrap();
@@ -546,19 +553,30 @@ fn main() {
         } else {
             // Build from source
             check_and_set_envs();
-            prepare_tensorflow_source(tf_src_path.as_path());
-            let config = if os == "android" || os == "ios" || (os == "macos" && arch == "arm64") {
-                format!("{os}_{arch}")
-            } else if os == "linux" && arch == "arm64" {
-                format!("elinux_aarch64")
-            } else {
-                os
-            };
-            build_tensorflow_with_bazel(
-                tf_src_path.to_str().unwrap(),
-                &config,
-                lib_output_path.as_path(),
-            );
+            #[cfg(feature = "download-tensorflow")]
+            {
+                prepare_tensorflow_source(tf_src_path.as_path());
+                let config = if os == "android" || os == "ios" || (os == "macos" && arch == "arm64")
+                {
+                    format!("{os}_{arch}")
+                } else if os == "linux" && arch == "arm64" {
+                    format!("elinux_aarch64")
+                } else {
+                    os
+                };
+
+                build_tensorflow_with_bazel(
+                    tf_src_path.to_str().unwrap(),
+                    &config,
+                    lib_output_path.as_path(),
+                );
+            }
+            #[cfg(not(feature = "download-tensorflow"))]
+            {
+                panic!(
+                        "download-tensorflow feature disabled and no prebuilt TensorFlow Lite C library supplied"
+                    );
+            }
         }
 
         // Generate bindings using headers
