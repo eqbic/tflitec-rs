@@ -10,6 +10,7 @@ const TAG: &str = "v2.17.0";
 const TF_GIT_URL: &str = "https://github.com/tensorflow/tensorflow.git";
 const BAZEL_COPTS_ENV_VAR: &str = "TFLITEC_BAZEL_COPTS";
 const PREBUILT_PATH_ENV_VAR: &str = "TFLITEC_PREBUILT_PATH";
+const TF_SRC_DIR_ENV_VAR: &str = "TFLITEC_TF_SRC_DIR";
 const HEADER_DIR_ENV_VAR: &str = "TFLITEC_HEADER_DIR";
 
 fn target_os() -> String {
@@ -498,6 +499,7 @@ fn main() {
             BAZEL_COPTS_ENV_VAR,
             PREBUILT_PATH_ENV_VAR,
             HEADER_DIR_ENV_VAR,
+            TF_SRC_DIR_ENV_VAR,
         ];
         for env_var in env_vars {
             println!("cargo:rerun-if-env-changed={env_var}");
@@ -533,7 +535,10 @@ fn main() {
         // docs.rs cannot access to network, use resource files
         prepare_for_docsrs();
     } else {
-        let tf_src_path = out_path.join(format!("tensorflow_{TAG}"));
+        let tf_src_path = match get_target_dependent_env_var(TF_SRC_DIR_ENV_VAR) {
+            Some(src_path) => Path::new(&src_path).canonicalize().unwrap(),
+            None => out_path.join(format!("tensorflow_{TAG}")),
+        };
         let lib_output_path = lib_output_path();
 
         if let Some(prebuilt_tflitec_path) = get_target_dependent_env_var(PREBUILT_PATH_ENV_VAR) {
